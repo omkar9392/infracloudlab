@@ -13,8 +13,10 @@ touch inputdata
 
 for i in `seq $Seq`
 do 
-  echo "$i,$RANDOM" >> inputdata
+  echo "$i,$RANDOM" >> /workdir/inputdata
 done 
 
-chmod 777 inputdata
+#chmod 777 inputdata
+
+#sleep 1000
 
