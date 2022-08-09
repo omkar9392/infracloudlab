@@ -1,0 +1,169 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: csvserver
+  name: csvserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: csvserver
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: csvserver
+    spec:
+      containers:
+      - image: infracloudio/csvserver:latest
+        name: csvserver
+        ports:
+        - containerPort: 9300
+        volumeMounts:
+        - name: configmapvol
+          mountPath: "/csvserver/inputdata"
+          subPath: "inputFile"
+        resources: {}
+      volumes:
+      - name: configmapvol
+        configMap:
+         name: inputdata-config
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: prometheus
+  name: prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: prometheus
+    spec:
+      containers:
+      - image: prom/prometheus:v2.22.0
+        name: prometheus
+        args:
+          - '--config.file=/etc/prometheus/prometheus.yaml'
+        ports:
+        - containerPort: 9090
+        volumeMounts:
+        - name: promconfigmapvol
+          mountPath: "/etc/prometheus/prometheus.yaml"
+          subPath: "prometheus.yaml"
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+      serviceAccountName: prometheus
+      volumes:
+      - name: promconfigmapvol
+        configMap:
+         name: prom-config
+
+---
+#kubectl expose deployment csvserver --port=9393 --target-port=9300 --type=NodePort --dry-run=client -o yaml
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: csvserver
+  name: csvserver
+spec:
+  ports:
+  - port: 9300
+    protocol: TCP
+    targetPort: 9300
+    nodePort: 32000
+  selector:
+    app: csvserver
+  type: NodePort
+---
+#kubectl expose deployment prometheus --port=9090 --target-port=9090 --type=NodePort --dry-run=client -o yaml
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: prometheus
+  name: prometheus
+spec:
+  ports:
+  - port: 9090
+    protocol: TCP
+    targetPort: 9090
+    nodePort: 31000
+  selector:
+    app: prometheus
+  type: NodePort
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus
+rules:
+- apiGroups: [""]
+  resources:
+  - nodes
+  - nodes/proxy
+  - services
+  - endpoints
+  - pods
+  verbs: ["get", "list", "watch"]
+- apiGroups:
+  - extensions
+  resources:
+  - ingresses
+  verbs: ["get", "list", "watch"]
+- nonResourceURLs: ["/metrics"]
+  verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus
+subjects:
+- kind: ServiceAccount
+  name: prometheus
+  namespace: default
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: default
+---
+apiVersion: v1
+data:
+  prometheus.yaml: |
+    scrape_configs:
+    - job_name: csvserver
+      scrape_interval: 5s
+      metrics_path: /metrics
+      static_configs:
+      - targets:
+        - csvserver:9300
+kind: ConfigMap
+metadata:
+  creationTimestamp: "2022-08-07T16:18:57Z"
+  name: prom-config
+  namespace: default
+  resourceVersion: "28383"
+  uid: a9b2e663-9091-4917-977b-1c39a6efdaf8

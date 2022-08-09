@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: csvserver-prom
+  name: csvserver-prom
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: csvserver-prom
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: csvserver-prom
+    spec:
+      containers:
+      - image: infracloudio/csvserver:latest
+        name: csvserver
+        ports:
+        - containerPort: 9300
+        volumeMounts:
+        - name: configmapvol
+          mountPath: "/csvserver/inputdata"
+          subPath: "inputdata"
+        resources: {}
+      - image: prom/prometheus:v2.22.0
+        name: prometheus
+        ports:
+        - containerPort: 9090
+        volumeMounts:
+        - name: promconfigmapvol
+          mountPath: "/etc/prometheus/prometheus.yaml"
+          subPath: "prometheus.yaml"
+        resources: {}
+      volumes:
+      - name: promconfigmapvol
+        configMap:
+         name: prom-config
+      - name: configmapvol
+        configMap:
+         name: inputdata-config
+status: {}
