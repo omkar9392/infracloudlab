@@ -1,3 +1,13 @@
+##########Kubernetes Assignment#####
+Part 1 assignment: k8s_part1.yaml
+Part 2 assignment: k8s_part2.yaml
+# Pre-requisites:
+# Create a local directory /localdir. This will be mounted as a hostpath.
+# If using minikube - kindly run below minikube command to mount the local directory to the minikube  
+# minikube mount /localdir:/localdir &
+#####################################
+
+
 Part 1:
 
 Q1: Run the container image infracloudio/csvserver:latest in background and check if it's running.
