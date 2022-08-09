@@ -23,15 +23,13 @@ spec:
         ports:
         - containerPort: 9300
         volumeMounts:
-        - name: configmapvol
+        - name: geninputfilevol
           mountPath: "/csvserver/inputdata"
-          subPath: "inputFile"
-        resources: {}
+          subPath: inputdata
       volumes:
-      - name: configmapvol
-        configMap:
-         name: inputdata-config
-
+      - name: geninputfilevol
+        hostPath:
+          path: "/localdir"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -165,5 +163,4 @@ metadata:
   creationTimestamp: "2022-08-07T16:18:57Z"
   name: prom-config
   namespace: default
-  resourceVersion: "28383"
-  uid: a9b2e663-9091-4917-977b-1c39a6efdaf8
+

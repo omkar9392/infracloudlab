@@ -13,6 +13,6 @@ fi
 
 for i in `seq $Seq`
 do 
-  echo "$i,$RANDOM" >> inputFile
+  echo "$i,$RANDOM" >> /localdir/inputdata
 done 
 
