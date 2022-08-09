@@ -1,3 +1,8 @@
+
+# Pre-requisites:
+# Create a local directory /localdir. This will be mounted as a hostpath.
+# If using minikube - kindly run below minikube command to mount the local directory to the minikube  
+# minikube mount /localdir:/localdir &
 apiVersion: apps/v1
 kind: Deployment
 metadata:
