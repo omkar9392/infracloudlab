@@ -72,7 +72,7 @@ resource "null_resource" "configweb12" {
     connection {
         type = "ssh"
         user = "ec2-user"
-        private_key = file("/home/omkar/.ssh/id_rsa")
+        private_key = file("/home/omkar/.ssh/TFkey.pem")
         host = aws_instance.wordpressfrontend.public_ip
     }
     provisioner "remote-exec" {
@@ -91,7 +91,7 @@ resource "null_resource" "configphp" {
     connection {
         type = "ssh"
         user = "ec2-user"
-        private_key = file("/home/omkar/.ssh/id_rsa")
+        private_key = file("/home/omkar/.ssh/TFkey.pem")
         host = aws_instance.wordpressfrontend.public_ip
     }
     provisioner "remote-exec" {
