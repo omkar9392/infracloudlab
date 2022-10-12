@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-prometheus-statefulsets
+spec:
+  selector:
+    matchLabels:
+      {{- include "prometheus_labels" .| indent 6 }}
+  serviceName: "{{ .Release.Name }}-prometheus-service"
+  replicas: {{ .Values.replicas }}
+  template:
+    metadata:
+      labels:
+        {{- include "prometheus_labels" .| indent 8 }}
+    spec:
+      containers:
+      - name: {{ .Values.containers.name }}
+        image: "{{ .Values.containers.repository }}:{{ .Values.containers.tag }}"
+        volumeMounts:
+        - name: {{ .Release.Name }}-prometheus-volumeclaim
+          mountPath: "/prometheus"
+        - name: {{ .Release.Name }}-prometheus-config
+          mountPath: "/etc/prometheus/prometheus.yml"
+          subPath: prometheus.yml
+      volumes:
+        - name: {{ .Release.Name }}-prometheus-config
+          configMap:
+            name: {{ .Release.Name }}-prometheus-config
+            items:
+            - key: prometheus.yml
+              path: "prometheus.yml"
+  volumeClaimTemplates:
+  - metadata:
+      name: {{ .Release.Name }}-prometheus-volumeclaim
+    spec:
+      accessModes: [ "{{ .Values.volumeClaimTemplates.accessModes }}" ]
+      resources:
+        requests:
+          storage: {{ .Values.volumeClaimTemplates.storage }}

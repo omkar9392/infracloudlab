@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-prometheus-config
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: {{  .Values.prometheus.scrape_interval }}
+    scrape_configs:
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+      - job_name: '{{ .Release.Name }}'
+        static_configs:
+          - targets: ['{{ .Release.Name }}-service:{{ .Values.ports.port }}']
